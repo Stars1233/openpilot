@@ -125,6 +125,15 @@ class Car:
       self.CP.safetyConfigs = [safety_config]
 
     if self.CP.secOcRequired and not self.params.get_bool("IsReleaseBranch"):
+      # Copy user key if available
+      try:
+        with open("/cache/params/SecOCKey") as f:
+          user_key = f.readline().strip()
+          if len(user_key) == 32:
+            self.params.put("SecOCKey", user_key)
+      except Exception:
+        pass
+
       secoc_key = self.params.get("SecOCKey", encoding='utf8')
       if secoc_key is not None:
         saved_secoc_key = bytes.fromhex(secoc_key.strip())
@@ -164,7 +173,7 @@ class Car:
 
     # Update carState from CAN
     CS = self.CI.update(can_list)
-    if self.CP.carName == 'mock':
+    if self.CP.brand == 'mock':
       CS = self.mock_carstate.update(CS)
 
     # Update radar tracks from CAN
